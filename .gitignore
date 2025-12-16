@@ -1,0 +1,10 @@
+# --- Manim Output Folders ---
+media/
+Manim videos/
+
+# --- Large Files & Textbooks ---
+*.pdf
+*.mp4
+*.mov
+*.mkv
+*.log
