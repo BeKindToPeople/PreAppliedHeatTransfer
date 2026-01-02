@@ -1,0 +1,308 @@
+\documentclass[11pt]{article}
+
+% This line looks for the preamble in the folder "next door"
+% It goes UP one level (..) then DOWN into (common)
+\input{CommonPreamble/CommonPreamble}
+
+\chead{03 : 1D Steady Flow }
+
+\begin{document}
+\subsection*{3.1 - Plane Wall}
+\subsection*{3.1.1 - Temp Distribution}
+
+\begin{figure}[H]
+    \hfill % <--- Pushes the minipage box to the right
+    \begin{minipage}{8cm} 
+        \centering        
+        
+        \begin{tikzpicture}[
+            x={(-0.5cm,-0.5cm)}, 
+            y={(1cm,0cm)}, 
+            z={(0cm,1cm)}, 
+            scale=1.5,
+            >=Stealth,
+            font=\small
+        ]
+
+            % --- Definitions ---
+            \def\dx{1.5}
+            \def\dy{1.5}
+            \def\dz{1.5}
+
+            % --- Coordinates ---
+            \coordinate (A) at (0,0,0);
+            \coordinate (B) at (\dx,0,0);
+            \coordinate (C) at (\dx,\dy,0);
+            \coordinate (D) at (0,\dy,0);
+            
+            \coordinate (E) at (0,0,\dz);
+            \coordinate (F) at (\dx,0,\dz);
+            \coordinate (G) at (\dx,\dy,\dz);
+            \coordinate (H) at (0,\dy,\dz);
+
+            % --- 1. Hidden Edges ---
+            \draw[dashed, gray] (A) -- (B);
+            \draw[dashed, gray] (A) -- (D);
+            \draw[dashed, gray] (A) -- (E);
+
+            % --- 2. Heat Inflows (Red Arrows) ---
+            \draw[->, thick, red] (0.5*\dx, -0.6, 0.5*\dz) -- (0.5*\dx, 0, 0.5*\dz) node[left, pos=0] {$q_y$};
+            \draw[->, thick, red] (0.5*\dx, 0.5*\dy, -0.6) -- (0.5*\dx, 0.5*\dy, 0) node[below, pos=0] {$q_z$};
+            \draw[->, thick, red] (-0.6, \dy/2-0.1, \dz/2) -- (0, \dy/2-0.1, \dz/2) node[above left, pos=0] {$q_x$};
+
+            % --- 3. Visible Cube Edges ---
+            \draw[thick] (B) -- (C) -- (G) -- (F) -- cycle; 
+            \draw[thick] (E) -- (F) -- (G) -- (H) -- cycle;
+            \draw[thick] (E) -- (H) -- (D) -- (C); 
+            \draw[thick] (E) -- (F) -- (B); 
+
+            % --- 4. Heat Outflows ---
+            \draw[->, thick, red] (\dx, \dy/2+0.2, \dz/2+0.1) -- (\dx+0.6, \dy/2+0.2, \dz/2+0.1) node[below right] {$q_{x+dx}$};
+            \draw[->, thick, red] (\dx/2, \dy, \dz/2) -- (\dx/2, \dy+0.6, \dz/2) node[right] {$q_{y+dy}$};
+            \draw[->, thick, red] (\dx/2, \dy/2, \dz) -- (\dx/2, \dy/2, \dz+0.6) node[above] {$q_{z+dz}$};
+
+            % --- 5. Energy Generation & Storage ---
+            \node[align=center] at (\dx/2, \dy/2, \dz/2) {$\dot{E}_{g}$};
+            \filldraw[black] (\dx/2 , \dy/2, \dz/2 + .2) circle (1pt);
+
+            \node[align=center] at (\dx/2, \dy/2, \dz/2 - 0.45) {$\dot{E}_{s}$};
+            \filldraw[black] (\dx/2 , \dy/2, \dz/2 - 0.45 + .2) circle (1pt);
+
+            % --- 6. Axes Reference ---
+            \draw[->, thick, black] (-0.5, 1.5, 2.5) -- (0.5, 1.5, 2.5) node[right] {$x$};
+            \draw[->, thick, black] (-0.5, 1.5, 2.5) -- (-0.5, 2.5, 2.5) node[above] {$y$};
+            \draw[->, thick, black] (-0.5, 1.5, 2.5) -- (-0.5, 1.5, 3.0) node[below left] {$z$};
+
+        \end{tikzpicture}
+        \caption{Differential Control Volume.} 
+        \label{fig:diff_vol}
+    \end{minipage}
+\end{figure}
+
+\noindent \hfill 
+\begin{minipage}{8cm} 
+    \centering 
+    
+    \textbf{Taylor Series Expansions:}
+    \begin{align*}
+        q_{x+dx} &= q_x+\frac{\partial q_x}{\partial x}dx\\
+        q_{y+dy} &= q_y+\frac{\partial q_y}{\partial y}dy\\
+        q_{z+dz} &= q_z+\frac{\partial q_z}{\partial z}dz
+    \end{align*}
+
+    \textbf{Energy Generation:}
+    \begin{align*}
+        \dot{E}_{g} &= \dot{q}dxdydz
+    \end{align*}
+
+    \textbf{Energy Storage:}
+    \begin{align*}
+        \dot{E}_{st} &= \rho C_p\frac{\partial T}{\partial t}dxdydz
+    \end{align*}
+
+    \textbf{Conservation of Energy:}
+    \begin{align*}
+        \dot{E}_{in}&+\dot{E}_{g}-\dot{E}_{out} = \dot{E}_{st}\\
+        (q_x+q_y+q_z)&+\dot{E}_{g}-(q_{x+dx}+q_{y+dy}+q_{z+dz})=\dot{E}_{st}
+    \end{align*}
+    
+    \textit{Applying this and doing some algebra will get you the general heat equation.}
+\end{minipage}
+
+\clearpage
+
+\subsection*{General Heat Eq}
+\begin{align*}
+    \frac{\partial}{\partial x}\Bigg(k\frac{\partial T}{\partial x}\Bigg) + \frac{\partial}{\partial y}\Bigg(k\frac{\partial T}{\partial y}\Bigg) + \frac{\partial}{\partial z}\Bigg(k\frac{\partial T}{\partial z}\Bigg) + \dot{q} &= \rho C_p \frac{\partial T}{\partial t}
+\end{align*}
+
+\subsection*{1D Conduction}
+
+\begin{tikzpicture}[
+    >=Stealth,
+    font=\small,
+    scale=1.2 % Adjust overall size
+]
+
+    % === DEFINITIONS & COORDINATES ===
+    % Wall dimensions
+    \def\wallW{3}   % Width of the wall
+    \def\wallH{5}   % Height of the drawing area
+    \def\blW{1.5}   % Approx width of thermal boundary layer for visualization
+
+    % Temperature Heights (Y-coordinates to represent values)
+    % T_inf1 > T_s1 > T_s2 > T_inf2
+    \def\yTinfOne{4.5}
+    \def\yTsOne{3.5}
+    \def\yTsTwo{2.0}
+    \def\yTinfTwo{1.0}
+
+    % X-Coordinates for interfaces
+    \coordinate (LeftFluidEnd) at (-\blW - 1, 0);
+    \coordinate (WallStart) at (0, 0);
+    \coordinate (WallEnd) at (\wallW, 0);
+    \coordinate (RightFluidStart) at (\wallW + \blW + 1, 0);
+
+
+    % === 1. FLUID REGIONS (Visual fluff) ===
+    % Hot Fluid (Left) - faint red background tint
+    \fill[red!5] (LeftFluidEnd |- 0,\wallH) rectangle (WallStart |- 0,0);
+    % Cold Fluid (Right) - faint blue background tint
+    \fill[blue!5] (WallEnd |- 0,\wallH) rectangle (RightFluidStart |- 0,0);
+
+    % Fluid motion arrows (squiggly) to imply convection
+    \begin{scope}[decorate, decoration={snake, amplitude=.4mm, segment length=2mm, post length=1mm}, gray!70, ->, thick]
+        % Left side (Hot)
+        \draw (-1.5, 1) -- (-1.5, 2.5);
+        \draw (-0.8, 3) -- (-0.8, 4.5);
+        \draw (-2.0, 0.5) -- (-2.0, 2);
+        % Right side (Cold)
+        \draw (\wallW+0.8, 2.5) -- (\wallW+0.8, 1);
+        \draw (\wallW+1.5, 4.5) -- (\wallW+1.5, 3);
+        \draw (\wallW+2.0, 2) -- (\wallW+2.0, 0.5);
+    \end{scope}
+
+
+    % === 2. THE SOLID WALL (Conduction Zone) ===
+    % Draw the rectangle with a pattern
+    \draw[thick, pattern=north east lines, pattern color=gray!40] 
+        (WallStart) rectangle (WallEnd |- 0,\wallH);
+    
+    % Mark the wall thickness L
+    \draw[<->, thick] ($(WallStart)+(0,-0.3)$) -- node[below] {$L$} ($(WallEnd)+(0,-0.3)$);
+    
+    % Label Wall properties
+    \node[align=center, fill=white, inner sep=2pt] at (\wallW/2, \wallH/2) {Solid Wall\\ $k$};
+
+
+    % === 3. REGION LABELS & PROPERTIES ===
+    % Left Fluid
+    \node[align=center, red!50!black] at (-1.5, \wallH + 0.5) {Hot Fluid\\ $h_1, T_{\infty 1}$};
+    % Right Fluid
+    \node[align=center, blue!50!black] at (\wallW + 1.5, \wallH + 0.5) {Cold Fluid\\ $h_2, T_{\infty 2}$};
+
+
+    % === 4. THE TEMPERATURE PROFILE (The most important part) ===
+    \draw[red, ultra thick] 
+        % --- Hot Convection Side ---
+        % Start deep in bulk fluid (constant T)
+        ($(LeftFluidEnd)+(0,\yTinfOne)$) -- ($(WallStart)+(-\blW,\yTinfOne)$)
+        % Boundary layer curve down to surface Ts1.
+        % Using 'out' and 'in' angles creates a smooth curve representing the thermal boundary layer
+        to[out=0, in=160] (WallStart |- 0, \yTsOne) coordinate (TS1)
+        
+        % --- Solid Conduction Side ---
+        % Linear drop through the solid
+        -- (WallEnd |- 0, \yTsTwo) coordinate (TS2)
+        
+        % --- Cold Convection Side ---
+        % Boundary layer curve down from surface Ts2
+        to[out=-20, in=180] ($(WallEnd)+(\blW,\yTinfTwo)$)
+        % End deep in bulk fluid (constant T)
+        -- ($(RightFluidStart)+(0,\yTinfTwo)$);
+
+
+    % === 5. TEMPERATURE LABELS & AXES ===
+    % Draw a faint y-axis for reference
+    \draw[->, gray, thin] ($(LeftFluidEnd)+(0.5,0)$) -- node[above]{$T$} ($(LeftFluidEnd)+(0.5,\wallH+0.2)$);
+
+    % Label T_inf1
+    \draw[gray, dashed] ($(LeftFluidEnd)+(0.5,\yTinfOne)$) -- (-\blW, \yTinfOne);
+    \node[left, red!80!black] at ($(LeftFluidEnd)+(0.5,\yTinfOne)$) {$T_{\infty 1}$};
+
+    % Label T_s1 (Surface 1)
+    \draw[gray, dashed] (TS1) -- (TS1 -| 0,0); % Drop line to x-axis
+    \node[left, fill=white, inner sep=1pt] at (TS1) {$T_{s1}$};
+
+    % Label T_s2 (Surface 2)
+    \draw[gray, dashed] (TS2) -- (TS2 |- 0,0); % Drop line to x-axis
+    \node[right, fill=white, inner sep=1pt] at (TS2) {$T_{s2}$};
+
+    % Label T_inf2
+    \draw[gray, dashed] ($(RightFluidStart)+(-0.5,\yTinfTwo)$) -- (\wallW+\blW, \yTinfTwo);
+    \node[right, blue!80!black] at ($(RightFluidStart)+(-0.5,\yTinfTwo)$) {$T_{\infty 2}$};
+
+
+    % === 6. OVERALL HEAT FLUX ARROW ===
+    \draw[->, ultra thick, red!70!black] 
+        (-\blW, \wallH/2 - 3.5) -- node[below, font=\large] {$q_x$} (\wallW+\blW, \wallH/2 - 3.5);
+
+\end{tikzpicture}
+
+\subsection*{Finding the heat xfer rate:}
+
+\begin{enumerate}
+    \item Start with the conditions in the wall.
+    \item Solve the general heat equation with the appropriate boundary conditions to find temp distribution.
+    \item Find the conduction Q xfer rate 
+\end{enumerate}
+
+\subsection*{Lets start with the general heat equation}
+
+\begin{align*}
+    \frac{\partial}{\partial x}\Bigg(k\frac{\partial T}{\partial x}\Bigg) + \frac{\partial}{\partial y}\Bigg(k\frac{\partial T}{\partial y}\Bigg) + \frac{\partial}{\partial z}\Bigg(k\frac{\partial T}{\partial z}\Bigg) + \dot{q} &= \rho C_p \frac{\partial T}{\partial t}
+\end{align*}
+
+
+
+
+For our 1D wall with no heat source and steady state, this reduces to:
+
+
+\begin{align*}
+    \frac{d}{dx}\Bigg(k\frac{dT}{dx}\Bigg)&=0
+\end{align*}
+
+We will solve this to find $T(x)$ or "Temp Distribution"
+
+Assume k is constant through the wall.
+
+\begin{align*}
+    \int\frac{d}{dx}\Bigg(k\frac{dT}{dx}\Bigg)dx&=\int 0 dx\\
+    k\frac{dT}{dx}&= A\\
+    \frac{dT}{dx}&=\frac{A}{k}\\
+    \frac{dT}{dx}&=C_1 \quad\quad \text{where $C_1 = \frac{A}{k}$}\\
+    dT&=C_1dx\\
+    \int dT dx&=\int C_1 dx\\
+    T(x)&=C_1x+C_2\\
+\end{align*}
+What about non-constant k terms?
+
+\begin{align*}
+\frac{d}{dx}(k(t)\frac{dT}{dx})&=0\\
+\int \frac{d}{dx}k(t)\frac{dT}{dx}dx&=\int 0 dx\\
+k(T)\frac{dT}{dx}&=\tikzmarknode{C0}{C_0}\\
+k(T) dT &= C_0 dx\\
+\int k(T) dT&= \int C_0 dx\\
+\int k_0(1+\beta T) dT&= \int C_0 dx\\
+k_0\int (1+\beta T) dT&= C_0x+C_1\\
+k_0\Bigg[T+\frac{\beta T^2}{2}\Bigg]&= C_0x+C_1 \\
+x(t)&=\frac{T+\frac{\beta}{2}T^2}{1+\frac{\beta}{2}} \tag{plotted below}
+\end{align*}
+
+
+
+\begin{tikzpicture}[remember picture, overlay]
+    \draw[<-, thick, blue] (C0) -- ++(2cm, 0) node[right] {Still Constant flux};
+\end{tikzpicture}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{Unit 3/betaComp.jpg}
+    \caption{with BC $T(x=0)=0$ and $T(x=L)=T_s$}
+    \label{fig:placeholder}
+\end{figure}
+
+\subsection{numerical view of the work}
+
+\begin{center}
+    \begin{tikzpicture}
+        \node[eqn box] {
+            $\displaystyle \frac{d}{dx}\left( k \frac{dT}{dx} \right) = 0$
+        };
+    \end{tikzpicture}
+\end{center}
+
+
+
+\end{document}
