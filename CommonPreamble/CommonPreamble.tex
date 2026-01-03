@@ -14,7 +14,7 @@
     mode=text,
     group-separator={,},
     detect-all,
-    binary-units,
+    % binary-units,  <--- REMOVED (Deprecated)
     list-units = single,
     range-units = single,
     range-phrase = --,
@@ -25,6 +25,7 @@
 \DeclareSIUnit\bar{bar}
 
 % --- Graphics, Plots & TikZ ---
+\usepackage[american]{circuitikz}
 \usepackage{graphicx}
 \usepackage{float, caption, subcaption, wrapfig}
 \usepackage{tikz}
@@ -48,6 +49,21 @@
 % \chead{} is intentionally left blank here!
 
 % --- Custom Commands ---
+
+% --- Custom Command: Flexible Diagonal Cancel ---
+\newcounter{cancelcount} % Ensures every arrow has a unique name
+
+% Usage: \canceldown{Value}{Term}
+\newcommand{\canceldown}[2]{%
+    \stepcounter{cancelcount}% Increment unique ID
+    \tikzmarknode{node\thecancelcount}{#2}% Mark the math term
+    \begin{tikzpicture}[remember picture, overlay]
+        \draw[red, thick, ->] 
+            ($(node\thecancelcount.north east)+(2pt,2pt)$) -- 
+            ($(node\thecancelcount.south west)-(2pt,2pt)$) 
+            node[below left=-2pt, text=black] {#1}; % Place the Value (#1) at the end
+    \end{tikzpicture}%
+}
 \newcommand{\BOX}{\[\begin{split}\hspace{16.2cm} \Box\end{split}\]}
 
 \newcommand{\R}{\mathbb{R}}
@@ -55,51 +71,28 @@
 \newcommand{\N}{\mathbb{N}}
 \newcommand{\C}{\mathbb{C}}
 
-% --- Custom TikZ Definitions for Equation Box ---
-\makeatletter
-% 1. Setup Keys
-\pgfkeys{
- /tikz/eqnbox/.cd,
- tri width/.store in=\triW, tri width=12pt,
- tri height/.store in=\triH, tri height=10pt,
- box color/.store in=\boxCol, box color=blue!80!black,
- fill color/.store in=\fillCol, fill color=blue!5,
-}
+% --- ROBUST EQUATION BOX (tcolorbox) ---
+\usepackage[most]{tcolorbox}
 
-% 2. Define the "Two Triangles" Top Edge Decoration
-\pgfdeclaredecoration{two triangles on top}{initial}{
-  \state{initial}[width=\pgfdecoratedpathlength]{
-    \pgfmathsetlengthmacro{\halfTriW}{\triW/2}
-    \pgfmathsetlengthmacro{\OneThirdLen}{\pgfdecoratedpathlength/3}
-    \pgfmathsetlengthmacro{\TwoThirdLen}{2*\pgfdecoratedpathlength/3}
-    \pgfpathmoveto{\pgfpoint{0pt}{0pt}}
-    \pgfpathlineto{\pgfpoint{\OneThirdLen - \halfTriW}{0pt}}
-    \pgfpathlineto{\pgfpoint{\OneThirdLen}{\triH}}
-    \pgfpathlineto{\pgfpoint{\OneThirdLen + \halfTriW}{0pt}}
-    \pgfpathlineto{\pgfpoint{\TwoThirdLen - \halfTriW}{0pt}}
-    \pgfpathlineto{\pgfpoint{\TwoThirdLen}{\triH}}
-    \pgfpathlineto{\pgfpoint{\TwoThirdLen + \halfTriW}{0pt}}
-    \pgfpathlineto{\pgfpoint{\pgfdecoratedpathlength}{0pt}}
-  }
-  \state{final}{}
-}
 
-% 3. Define the Style
-\tikzset{
-  eqn box/.style={
-    /tikz/eqnbox/.cd, #1, /tikz/.cd,
-    shape=rectangle, inner sep=12pt, fill=\fillCol, draw=none,
-    drop shadow={opacity=0.2, shadow xshift=2pt, shadow yshift=-2pt},
-    append after command={
-      \pgfextra{
-        \draw[thick, \boxCol, line join=round, rounded corners=3pt]
-          (\tikzlastnode.north east) -- (\tikzlastnode.south east) --
-          (\tikzlastnode.south west) -- (\tikzlastnode.north west);
-        \draw[thick, \boxCol, line join=miter, sharp corners,
-              decorate, decoration={two triangles on top}]
-          (\tikzlastnode.north west) -- (\tikzlastnode.north east);
-      }
+\newtcolorbox{eqnbox}{
+    enhanced,
+    hbox,
+    colback=blue!5,
+    frame hidden,
+    top=6pt, bottom=6pt, left=10pt, right=10pt,
+    overlay={
+        \draw[thick, blue!80!black, line join=round, rounded corners=3pt] 
+            (frame.north west) -- (frame.south west) -- 
+            (frame.south east) -- (frame.north east);
+        \draw[thick, blue!80!black, line join=miter] 
+            (frame.north west) 
+            -- ($(frame.north west)!0.33!(frame.north east) + (-5pt, 0)$)
+            -- ($(frame.north west)!0.33!(frame.north east) + (0, 8pt)$)
+            -- ($(frame.north west)!0.33!(frame.north east) + (5pt, 0)$)
+            -- ($(frame.north west)!0.66!(frame.north east) + (-5pt, 0)$)
+            -- ($(frame.north west)!0.66!(frame.north east) + (0, 8pt)$)
+            -- ($(frame.north west)!0.66!(frame.north east) + (5pt, 0)$)
+            -- (frame.north east);
     }
-  }
 }
-\makeatother
